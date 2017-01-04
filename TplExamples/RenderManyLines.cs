@@ -1,31 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using TplExamples.Algorithms;
 
 namespace TplExamples
 {
-    public partial class Form1 : Form
+    public partial class RenderManyLines : Form
     {
-        private Color[] _colorTable;
         private Bitmap _image;
         private int _lines;
-        public Form1()
+        private List<int> _tpThreads;
+        private List<int> _dedicatedThreads;
+        public RenderManyLines()
         {
             InitializeComponent();
-            _colorTable = new Color[8];  
-            _colorTable[0] = Color.Red;
-            _colorTable[1] = Color.Blue;
-            _colorTable[2] = Color.Yellow;
-            _colorTable[3] = Color.Green;
-            _colorTable[4] = Color.LightBlue;
-            _colorTable[5] = Color.Fuchsia;
-            _colorTable[6] = Color.Sienna;
-            _colorTable[7] = Color.SpringGreen;
             panel1.Paint += panel1_Paint;
 
-            _lines = 300;
+            _lines = 720;
+            _tpThreads = new List<int>();
+            _dedicatedThreads = new List<int>();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -56,6 +52,10 @@ namespace TplExamples
                     return new ParallelAlgorithm(_lines);
                 case "Sequential":
                     return new SequentialAlgorithm(_lines);
+                case "BadLongRunning":
+                    return new BadLongRunningAlgorithm(_lines);
+                case "GoodLongRunning":
+                    return new GoodLongRunningAlgorithm(_lines);
             }
 
             return null;
@@ -64,21 +64,33 @@ namespace TplExamples
         private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             object[] args = (object[])e.UserState;
-            
-            int thread = (int)args[0];
-            int line = (int)args[1];
-            var c = _colorTable[thread % _colorTable.Length];
+            var threadId = (int) args[0];
+            var isTP = (bool) args[2];
+            var threadColor = ColorPicker.GetThreadColor(threadId, isTP);
+            var line = (int)args[1];
             for (int i = 0; i < _lines; i++)
             {
-                _image.SetPixel(i, line, c);
+                _image.SetPixel(i, line, threadColor);
             }
             panel1.Invalidate(new Rectangle(0, line, _image.Width, 1));
+
+            if(isTP)
+                _tpThreads.Add(threadId);
+            else _dedicatedThreads.Add(threadId);
+            var tpCount = _tpThreads.Distinct().Count();
+            lblTpThreads.Text = tpCount.ToString();
+            lblDedicated.Text = _dedicatedThreads.Distinct().Count().ToString();
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
             if (_image != null)
                 e.Graphics.DrawImage(_image, 0, 0);
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

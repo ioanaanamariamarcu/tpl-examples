@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Threading;
 
 namespace TplExamples.Algorithms
@@ -19,7 +20,7 @@ namespace TplExamples.Algorithms
             for (int i = 0; i < _lines; i++)
             {
                 Thread.Sleep(10);
-                worker.ReportProgress(i, new object[] {0, i});
+                worker.ReportProgress(i, new object[] {0, i, true});
             }
         }
     }

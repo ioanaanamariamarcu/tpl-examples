@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace TplExamples.Algorithms
 {
-    class ParallelAlgorithm : IRenderingAlgorithm
+    public class BadLongRunningAlgorithm:IRenderingAlgorithm
     {
         private readonly int _lines;
 
-        public ParallelAlgorithm(int lines)
+        public BadLongRunningAlgorithm(int lines)
         {
             _lines = lines;
         }
@@ -22,7 +22,7 @@ namespace TplExamples.Algorithms
             var worker = (BackgroundWorker)sender;
             Parallel.For(0, _lines, (i) =>
             {
-                Thread.Sleep(10);
+                Thread.Sleep(500);
                 worker.ReportProgress(0, new object[] { Thread.CurrentThread.ManagedThreadId, i, Thread.CurrentThread.IsThreadPoolThread });
             });
         }
